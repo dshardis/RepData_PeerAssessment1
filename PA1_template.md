@@ -154,7 +154,6 @@ steps_new <- aggregate(steps ~ date, activity_new, sum)
 hist(steps_new$steps, breaks = 30, main = "Histogram of Steps Taken per Day", xlab = "Steps Taken per Day")
 ```
 
-
 ### Are there differences in activity patterns between weekdays and weekends?
 
 For this part the `weekdays()` function may be of some help here. Use
