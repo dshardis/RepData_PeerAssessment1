@@ -70,7 +70,6 @@ assignment so you do not have to download the data separately.
 ### Loading and preprocessing the data
 
 ```{r, echo=TRUE}
-setInternet2(use = TRUE)
 temp <- tempfile()
 download.file("https://github.com/dshardis/RepData_PeerAssessment1/blob/master/activity.zip?raw=true", temp, mode = "wb")
 unzip(temp, "activity.csv")
@@ -90,6 +89,7 @@ the dataset.
 steps <- aggregate(steps ~ date, activity, sum)
 hist(steps$steps, breaks = 30, main = "Histogram of Steps Taken per Day", xlab = "Steps Taken per Day")
 ```
+
 
 2. Calculate and report the **mean** and **median** total number of steps taken per day
 
