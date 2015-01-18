@@ -1,5 +1,5 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
+title: 'Reproducible Research: Peer Assessment 1'
 author: "David Hardister"
 date: "Saturday, January 17, 2015"
 output: pdf_document
@@ -70,6 +70,7 @@ assignment so you do not have to download the data separately.
 ### Loading and preprocessing the data
 
 ```{r, echo=TRUE}
+setInternet2(use = TRUE)
 temp <- tempfile()
 download.file("https://github.com/dshardis/RepData_PeerAssessment1/blob/master/activity.zip?raw=true", temp, mode = "wb")
 unzip(temp, "activity.csv")
@@ -137,16 +138,21 @@ impute.mean <- function(x) replace(x, is.na(x), mean(x, na.rm = TRUE))
 
 ```{r, echo=TRUE}
 activity_new <- ddply(activity_original, ~ interval, transform, steps = impute.mean(steps))
-activity_new <- activity_new[order(row.names(activity_new)), ]
+activity_new <- activity_new[order(activity_new$date, activity_new$interval), ]
+nrow(activity_original)
+nrow(activity_new)
+sum(is.na(activity_new))
 ```
 
 4. Make a histogram of the total number of steps taken each day and Calculate and report the **mean** and **median** total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
 ```{r, echo=TRUE}
+timeseries_new <- aggregate(steps ~ interval, activity_new, mean)
+plot(timeseries_new$interval, timeseries_new$steps, type = "l", main = "Steps Taken by Time of Day", sub = "(5-minute Intervals)", ylab = "Number of Steps", xlab = "Time Interval" )
 
-
+steps_new <- aggregate(steps ~ date, activity_new, sum)
+hist(steps_new$steps, breaks = 30, main = "Histogram of Steps Taken per Day", xlab = "Steps Taken per Day")
 ```
-
 
 ### Are there differences in activity patterns between weekdays and weekends?
 
@@ -155,65 +161,18 @@ the dataset with the filled-in missing values for this part.
 
 1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
-1. Make a panel plot containing a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+```{r, echo=TRUE}
+activity_new$weekDay <- weekdays(as.Date(activity_new$date), abbreviate = FALSE)
 
-
-
-## Submitting the Assignment
-
-To submit the assignment:
-
-1. Commit your completed `PA1_template.Rmd` file to the `master` branch of your git repository (you should already be on the `master` branch unless you created new ones)
-
-2. Commit your `PA1_template.md` and `PA1_template.html` files produced by processing your R markdown file with the `knit2html()` function in R (from the **knitr** package)
-
-3. If your document has figures included (it should) then they should have been placed in the `figure/` directory by default (unless you overrode the default). Add and commit the `figure/` directory to your git repository.
-
-4. Push your `master` branch to GitHub.
-
-5. Submit the URL to your GitHub repository for this assignment on the course web site.
-
-In addition to submitting the URL for your GitHub repository, you will
-need to submit the 40 character SHA-1 hash (as string of numbers from
-0-9 and letters from a-f) that identifies the repository commit that
-contains the version of the files you want to submit. You can do this
-in GitHub by doing the following:
-
-1. Go into your GitHub repository web page for this assignment
-
-2. Click on the "?? commits" link where ?? is the number of commits you have in the repository. For example, if you made a total of 10 commits to this repository, the link should say "10 commits".
-
-3. You will see a list of commits that you have made to this repository. The most recent commit is at the very top. If this represents the version of the files you want to submit, then just click the "copy to clipboard" button on the right hand side that should appear when you hover over the SHA-1 hash. Paste this SHA-1 hash into the course web site when you submit your assignment. If you don't want to use the most recent commit, then go down and find the commit you want and copy the SHA-1 hash.
-
-A valid submission will look something like (this is just an **example**!)
-
-```r
-https://github.com/rdpeng/RepData_PeerAssessment1
-
-7c376cc5447f11537f8740af8e07d6facc3d9645
+activity_new$weekPart <- as.factor(ifelse(activity_new$weekDay %in% c("Saturday", "Sunday"), "Weekend", "Weekday"))
 ```
 
+2. Make a panel plot containing a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
 
+```{r, echo=TRUE}
+library(ggplot2)
 
-
-
-
-
-
-
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r}
-summary(cars)
+dt <- aggregate(as.integer(activity_new$steps), by=list(activity_new$weekPart, activity_new$interval), mean)
+ggplot(aggregate(as.integer(activity_new$steps), by=list(activity_new$weekPart, activity_new$interval), mean), aes(x = Group.2, y = x, group = Group.1, color = Group.1)) + geom_line() + 
+    theme(legend.position = "bottom")
 ```
-
-You can also embed plots, for example:
-
-```{r, echo=FALSE}
-plot(cars)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
